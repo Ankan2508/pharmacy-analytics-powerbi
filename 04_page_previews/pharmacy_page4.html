@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Analytics - Promotional Effectiveness & Brand Strategy</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #374151;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            padding: 30px 40px;
+            border-bottom: 3px solid #0F766E;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-section h1 {
+            color: #0F766E;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .title-section p {
+            color: #6B7280;
+            font-size: 16px;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #0F766E;
+        }
+
+        .nav-btn.active {
+            background: #0F766E;
+            color: white;
+        }
+
+        .nav-btn:not(.active) {
+            background: white;
+            color: #0F766E;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+
+        /* Main Content */
+        .content {
+            padding: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.3s ease;
+            margin-bottom: 24px;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        /* Promo Comparison */
+        .promo-comparison {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .promo-card {
+            flex: 1;
+            padding: 32px;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            min-height: 280px;
+        }
+
+        .promo-card.promoted {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border: 3px solid #F59E0B;
+        }
+
+        .promo-card.regular {
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+            border: 3px solid #9CA3AF;
+        }
+
+        .promo-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .promo-metric {
+            margin-bottom: 20px;
+        }
+
+        .promo-metric-value {
+            font-size: 38px;
+            font-weight: 700;
+            color: #0F766E;
+            line-height: 1;
+        }
+
+        .promo-metric-label {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .promo-insight {
+            flex: 0.5;
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            border: 3px dashed #F59E0B;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 280px;
+        }
+
+        .promo-insight-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .promo-insight-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .promo-insight-highlight {
+            color: #DC2626;
+            font-size: 24px;
+            font-weight: 700;
+            display: block;
+            margin: 8px 0;
+        }
+
+        /* Brand Comparison */
+        .brand-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        .brand-card {
+            padding: 32px;
+            background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);
+            border-radius: 12px;
+            border: 3px solid #14B8A6;
+        }
+
+        .brand-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #0F766E;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-card .count {
+            font-size: 13px;
+            color: #6B7280;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .brand-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .brand-metric {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .brand-metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0F766E;
+            line-height: 1;
+        }
+
+        .brand-metric-label {
+            font-size: 11px;
+            color: #6B7280;
+            margin-top: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .chart-small {
+            height: 200px;
+            margin-top: 16px;
+        }
+
+        .chart-small canvas {
+            max-height: 200px;
+        }
+
+        /* Recommendation Box */
+        .recommendation-box {
+            background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+            padding: 32px;
+            border-radius: 12px;
+            border: 3px solid #3B82F6;
+            margin-top: 32px;
+        }
+
+        .recommendation-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-icon {
+            font-size: 40px;
+        }
+
+        .recommendation-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1E40AF;
+        }
+
+        .recommendation-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3B82F6;
+        }
+
+        .recommendation-item h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1E40AF;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-item p {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .promo-comparison {
+                flex-direction: column;
+            }
+            .brand-comparison {
+                grid-template-columns: 1fr;
+            }
+            .recommendation-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1>Promotional Effectiveness & Brand Strategy</h1>
+                    <p>Deep Dive into Drivers of Profitability</p>
+                </div>
+                <div class="navigation">
+                    <button class="nav-btn">Page 1</button>
+                    <button class="nav-btn">Page 2</button>
+                    <button class="nav-btn">Page 3</button>
+                    <button class="nav-btn active">Page 4</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Promotional Impact -->
+            <div class="card">
+                <div class="card-title">Promotional Impact Analysis</div>
+                <div class="promo-comparison">
+                    <div class="promo-card promoted">
+                        <h3>📢 Promoted Sales</h3>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">€911K</div>
+                            <div class="promo-metric-label">Revenue (10.6% of total)</div>
+                        </div>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">19.9%</div>
+                            <div class="promo-metric-label">Margin Rate</div>
+                        </div>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">8,420</div>
+                            <div class="promo-metric-label">Units Sold</div>
+                        </div>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">€181K</div>
+                            <div class="promo-metric-label">Total Margin Contribution</div>
+                        </div>
+                    </div>
+
+                    <div class="promo-insight">
+                        <div class="promo-insight-icon">⚠️</div>
+                        <div class="promo-insight-text">
+                            Promotions drive <strong>higher volume</strong> but reduce profitability by
+                            <span class="promo-insight-highlight">-9.1 pp</span>
+                            <div style="font-size: 13px; color: #6B7280; margin-top: 12px;">
+                                Every €1 in promotional revenue generates €0.20 margin vs. €0.29 for regular sales
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="promo-card regular">
+                        <h3>💰 Regular Sales</h3>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">€7.7M</div>
+                            <div class="promo-metric-label">Revenue (89.4% of total)</div>
+                        </div>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">29.0%</div>
+                            <div class="promo-metric-label">Margin Rate</div>
+                        </div>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">53,720</div>
+                            <div class="promo-metric-label">Units Sold</div>
+                        </div>
+                        <div class="promo-metric">
+                            <div class="promo-metric-value">€2.2M</div>
+                            <div class="promo-metric-label">Total Margin Contribution</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generic vs Brand -->
+            <div class="card">
+                <div class="card-title">Generic vs. Branded Product Performance</div>
+                <div class="brand-comparison">
+                    <div class="brand-card">
+                        <h3>💊 Generic Products</h3>
+                        <div class="count">33 products • 15% of portfolio</div>
+                        <div class="brand-metrics">
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">€1.2M</div>
+                                <div class="brand-metric-label">Revenue</div>
+                            </div>
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">32.4%</div>
+                                <div class="brand-metric-label">Avg Margin %</div>
+                            </div>
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">8,950</div>
+                                <div class="brand-metric-label">Units Sold</div>
+                            </div>
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">€389K</div>
+                                <div class="brand-metric-label">Margin Contribution</div>
+                            </div>
+                        </div>
+                        <div class="chart-small">
+                            <canvas id="genericChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="brand-card">
+                        <h3>🏷️ Branded Products</h3>
+                        <div class="count">187 products • 85% of portfolio</div>
+                        <div class="brand-metrics">
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">€7.4M</div>
+                                <div class="brand-metric-label">Revenue</div>
+                            </div>
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">27.4%</div>
+                                <div class="brand-metric-label">Avg Margin %</div>
+                            </div>
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">53,190</div>
+                                <div class="brand-metric-label">Units Sold</div>
+                            </div>
+                            <div class="brand-metric">
+                                <div class="brand-metric-value">€2.0M</div>
+                                <div class="brand-metric-label">Margin Contribution</div>
+                            </div>
+                        </div>
+                        <div class="chart-small">
+                            <canvas id="brandedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategic Recommendations -->
+            <div class="recommendation-box">
+                <div class="recommendation-header">
+                    <div class="recommendation-icon">🎯</div>
+                    <div class="recommendation-title">Strategic Recommendations</div>
+                </div>
+                <div class="recommendation-list">
+                    <div class="recommendation-item">
+                        <h4>Optimize Promotion Strategy</h4>
+                        <p>Reduce blanket promotions. Target promotions to low-margin categories to improve overall mix. Consider volume thresholds before applying discounts.</p>
+                    </div>
+                    <div class="recommendation-item">
+                        <h4>Expand Generic Portfolio</h4>
+                        <p>Generics deliver 5pp higher margins (32.4% vs 27.4%). Increase generic SKU count by 20% focusing on high-volume therapeutic areas.</p>
+                    </div>
+                    <div class="recommendation-item">
+                        <h4>Premium Product Focus</h4>
+                        <p>Wellness and Personal Care show 33%+ margins. Cross-sell these categories to prescription customers to boost basket value and profitability.</p>
+                    </div>
+                    <div class="recommendation-item">
+                        <h4>Promotional Efficiency Metrics</h4>
+                        <p>Implement ROI tracking for all promotions. Set minimum margin floor of 22% for promotional pricing to protect overall profitability.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generic Category Breakdown
+        const genericCtx = document.getElementById('genericChart').getContext('2d');
+        const genericChart = new Chart(genericCtx, {
+            type: 'bar',
+            data: {
+                labels: ['OTC', 'Prescription', 'Personal Care', 'Wellness'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [380, 420, 220, 180],
+                    backgroundColor: ['#0F766E', '#14B8A6', '#2DD4BF', '#5EEAD4'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 118, 110, 0.95)',
+                        callbacks: {
+                            label: function(context) {
+                                return '€' + context.parsed.y + 'K';
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Revenue by Category',
+                        color: '#374151',
+                        font: { size: 12, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#F3F4F6' },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return '€' + value + 'K';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#6B7280',
+                            font: { size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Branded Category Breakdown
+        const brandedCtx = document.getElementById('brandedChart').getContext('2d');
+        const brandedChart = new Chart(brandedCtx, {
+            type: 'bar',
+            data: {
+                labels: ['OTC', 'Prescription', 'Personal Care', 'Wellness', 'Med Devices'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [2220, 1680, 1680, 1220, 640],
+                    backgroundColor: ['#0F766E', '#14B8A6', '#2DD4BF', '#5EEAD4', '#99F6E4'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 118, 110, 0.95)',
+                        callbacks: {
+                            label: function(context) {
+                                return '€' + context.parsed.y + 'K';
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Revenue by Category',
+                        color: '#374151',
+                        font: { size: 12, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#F3F4F6' },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return '€' + value + 'K';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#6B7280',
+                            font: { size: 9 }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

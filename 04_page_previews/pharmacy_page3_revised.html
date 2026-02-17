@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Analytics - What Drives Profitability (Revised)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #374151;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            padding: 30px 40px;
+            border-bottom: 3px solid #0F766E;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-section h1 {
+            color: #0F766E;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .title-section p {
+            color: #6B7280;
+            font-size: 16px;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #0F766E;
+        }
+
+        .nav-btn.active {
+            background: #0F766E;
+            color: white;
+        }
+
+        .nav-btn:not(.active) {
+            background: white;
+            color: #0F766E;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+
+        /* Main Content */
+        .content {
+            padding: 40px;
+        }
+
+        /* Filter Section */
+        .filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6B7280;
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #E5E7EB;
+            background: white;
+            color: #6B7280;
+        }
+
+        .filter-pill.active {
+            background: #0F766E;
+            color: white;
+            border-color: #0F766E;
+        }
+
+        .filter-pill:hover:not(.active) {
+            border-color: #0F766E;
+            color: #0F766E;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Category Matrix */
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .matrix-table th {
+            background: #0F766E;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .matrix-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 13px;
+        }
+
+        .matrix-table tr:hover {
+            background: #F0FDFA;
+        }
+
+        .matrix-table tr:last-child {
+            background: #F3F4F6;
+            font-weight: 700;
+        }
+
+        .category-icon {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            background: #0F766E;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 36px;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .progress-bar {
+            display: inline-block;
+            width: 80px;
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #14B8A6 0%, #0F766E 100%);
+            border-radius: 4px;
+        }
+
+        .donut-indicator {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #0F766E;
+            border-radius: 50%;
+            position: relative;
+            margin-left: 8px;
+            vertical-align: middle;
+            background: conic-gradient(#0F766E 0deg 270deg, #E5E7EB 270deg 360deg);
+        }
+
+        .growth-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .chart-container canvas {
+            max-height: 400px;
+        }
+
+        /* Insight Card */
+        .insight-card {
+            background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #14B8A6;
+            margin-top: 24px;
+        }
+
+        .insight-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .insight-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0F766E;
+            margin-bottom: 8px;
+        }
+
+        .insight-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .bottom-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1>What Drives Profitability</h1>
+                    <p>Product & Promotional Analysis</p>
+                </div>
+                <div class="navigation">
+                    <button class="nav-btn">Page 1</button>
+                    <button class="nav-btn">Page 2</button>
+                    <button class="nav-btn active">Page 3</button>
+                    <button class="nav-btn">Page 4</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Filters -->
+            <div class="filters">
+                <span class="filter-label">Category Filter:</span>
+                <div class="filter-pills">
+                    <button class="filter-pill active">All</button>
+                    <button class="filter-pill active">OTC</button>
+                    <button class="filter-pill active">Prescription</button>
+                    <button class="filter-pill active">Personal Care</button>
+                    <button class="filter-pill active">Wellness</button>
+                    <button class="filter-pill active">Medical Devices</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Category Performance Matrix -->
+                <div class="card">
+                    <div class="card-title">Category Performance Matrix</div>
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Revenue</th>
+                                <th>Units Sold</th>
+                                <th>Margin %</th>
+                                <th>Margin Contribution</th>
+                                <th>MoM Growth</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="category-icon">💊</span> Prescription</td>
+                                <td>€2.8M <span style="color: #9CA3AF; font-size: 11px;">(32.4%)</span><span class="progress-bar"><span class="progress-fill" style="width: 32%"></span></span></td>
+                                <td>63,277</td>
+                                <td>21.9% <span class="donut-indicator" style="background: conic-gradient(#0F766E 0deg 79deg, #E5E7EB 79deg 360deg)"></span></td>
+                                <td>€613.2K</td>
+                                <td><span class="growth-badge">▲ +4.1%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="category-icon">🏥</span> OTC</td>
+                                <td>€1.8M <span style="color: #9CA3AF; font-size: 11px;">(20.8%)</span><span class="progress-bar"><span class="progress-fill" style="width: 21%"></span></span></td>
+                                <td>177,686</td>
+                                <td>29.4% <span class="donut-indicator" style="background: conic-gradient(#0F766E 0deg 106deg, #E5E7EB 106deg 360deg)"></span></td>
+                                <td>€528.2K</td>
+                                <td><span class="growth-badge">▲ +5.7%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="category-icon">🌿</span> Wellness</td>
+                                <td>€1.7M <span style="color: #9CA3AF; font-size: 11px;">(19.5%)</span><span class="progress-bar"><span class="progress-fill" style="width: 19%"></span></span></td>
+                                <td>89,423</td>
+                                <td>33.6% <span class="donut-indicator" style="background: conic-gradient(#0F766E 0deg 121deg, #E5E7EB 121deg 360deg)"></span></td>
+                                <td>€575.1K</td>
+                                <td><span class="growth-badge">▲ +4.4%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="category-icon">🧴</span> Personal Care</td>
+                                <td>€1.5M <span style="color: #9CA3AF; font-size: 11px;">(16.8%)</span><span class="progress-bar"><span class="progress-fill" style="width: 17%"></span></span></td>
+                                <td>101,510</td>
+                                <td>33.5% <span class="donut-indicator" style="background: conic-gradient(#0F766E 0deg 121deg, #E5E7EB 121deg 360deg)"></span></td>
+                                <td>€486.9K</td>
+                                <td><span class="growth-badge">▲ +4.8%</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="category-icon">🩺</span> Medical Care</td>
+                                <td>€872.6K <span style="color: #9CA3AF; font-size: 11px;">(10.1%)</span><span class="progress-bar"><span class="progress-fill" style="width: 10%"></span></span></td>
+                                <td>13,897</td>
+                                <td>25.0% <span class="donut-indicator" style="background: conic-gradient(#0F766E 0deg 90deg, #E5E7EB 90deg 360deg)"></span></td>
+                                <td>€217.8K</td>
+                                <td><span class="growth-badge">▲ +4.7%</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>TOTAL</strong></td>
+                                <td><strong>€8.6M</strong> <span style="color: #9CA3AF; font-size: 11px;">(100.0%)</span></td>
+                                <td><strong>4,45,793</strong></td>
+                                <td><strong>28.0%</strong></td>
+                                <td><strong>€2.4M</strong></td>
+                                <td><span class="growth-badge">▲ +4.6%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Bottom Section -->
+                <div class="bottom-section">
+                    <!-- Top Products Chart -->
+                    <div class="card">
+                        <div class="card-title">Top 10 Products by Margin</div>
+                        <div class="chart-container">
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Portfolio Balance -->
+                    <div class="card">
+                        <div class="card-title">Product Portfolio Balance</div>
+                        <div class="chart-container">
+                            <canvas id="portfolioChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Insight Card -->
+                <div class="insight-card">
+                    <div class="insight-icon">💡</div>
+                    <div class="insight-title">Key Insight</div>
+                    <div class="insight-text">
+                        Wellness and Personal Care categories deliver the highest margins (33.6% and 33.5%) despite lower revenue contribution. 
+                        Focus on expanding these high-margin categories while maintaining volume in Prescription products. 
+                        The portfolio shows healthy balance with strong performers across all quadrants.
+                        <strong>Next:</strong> Explore promotional effectiveness and brand performance on Page 4.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Top Products Bar Chart
+        const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+        const topProductsChart = new Chart(topProductsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['AntiBioX', 'BioBalance', 'ImmunoPlus', 'PainLess', 'SmileBright', 
+                         'CardioShield', 'VitaMax', 'SleepWell', 'DermaGlow', 'FlexJoint'],
+                datasets: [{
+                    label: 'Margin Contribution',
+                    data: [185000, 162000, 148000, 142000, 138000, 125000, 118000, 112000, 108000, 102000],
+                    backgroundColor: [
+                        '#0D9488', '#0F766E', '#115E59', '#14B8A6', '#2DD4BF',
+                        '#0D9488', '#0F766E', '#115E59', '#14B8A6', '#2DD4BF'
+                    ],
+                    borderRadius: 6,
+                    barThickness: 32
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 118, 110, 0.95)',
+                        callbacks: {
+                            label: function(context) {
+                                return 'Margin: €' + context.parsed.x.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: '#F3F4F6' },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: { size: 11 },
+                            callback: function(value) {
+                                return '€' + (value/1000).toFixed(0) + 'K';
+                            }
+                        }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#374151',
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Portfolio Bubble Chart
+        const portfolioCtx = document.getElementById('portfolioChart').getContext('2d');
+        const portfolioChart = new Chart(portfolioCtx, {
+            type: 'bubble',
+            data: {
+                datasets: [
+                    {
+                        label: 'Medical Devices',
+                        data: [
+                            {x: 800, y: 32, r: 15},
+                            {x: 1200, y: 28, r: 18}
+                        ],
+                        backgroundColor: 'rgba(15, 118, 110, 0.6)',
+                        borderColor: '#0F766E',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'OTC',
+                        data: [
+                            {x: 8000, y: 28, r: 35},
+                            {x: 12000, y: 30, r: 28}
+                        ],
+                        backgroundColor: 'rgba(20, 184, 166, 0.6)',
+                        borderColor: '#14B8A6',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Personal Care',
+                        data: [
+                            {x: 80000, y: 22, r: 45},
+                            {x: 60000, y: 35, r: 32}
+                        ],
+                        backgroundColor: 'rgba(45, 212, 191, 0.6)',
+                        borderColor: '#2DD4BF',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Prescription',
+                        data: [
+                            {x: 120000, y: 20, r: 50},
+                            {x: 40000, y: 24, r: 28}
+                        ],
+                        backgroundColor: 'rgba(94, 234, 212, 0.6)',
+                        borderColor: '#5EEAD4',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Wellness',
+                        data: [
+                            {x: 40000, y: 34, r: 38}
+                        ],
+                        backgroundColor: 'rgba(153, 246, 228, 0.6)',
+                        borderColor: '#99F6E4',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12 },
+                            color: '#6B7280',
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 118, 110, 0.95)',
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': Units: ' + context.parsed.x.toLocaleString() + ', Margin: ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'logarithmic',
+                        title: {
+                            display: true,
+                            text: 'Units Sold (log scale)',
+                            color: '#6B7280',
+                            font: { size: 12, weight: 'bold' }
+                        },
+                        grid: { color: '#F3F4F6' },
+                        ticks: { 
+                            color: '#9CA3AF', 
+                            font: { size: 11 },
+                            callback: function(value) {
+                                if (value === 1000 || value === 10000 || value === 100000) {
+                                    return value.toLocaleString();
+                                }
+                                return '';
+                            }
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Margin %',
+                            color: '#6B7280',
+                            font: { size: 12, weight: 'bold' }
+                        },
+                        grid: { color: '#F3F4F6' },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: { size: 11 },
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Filter Pills Interactivity
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                if (this.textContent === 'All') {
+                    const isActive = this.classList.contains('active');
+                    document.querySelectorAll('.filter-pill').forEach(p => {
+                        if (isActive) {
+                            p.classList.remove('active');
+                        } else {
+                            p.classList.add('active');
+                        }
+                    });
+                } else {
+                    this.classList.toggle('active');
+                    const categoryPills = Array.from(document.querySelectorAll('.filter-pill')).filter(p => p.textContent !== 'All');
+                    const allSelected = categoryPills.every(p => p.classList.contains('active'));
+                    const allButton = document.querySelector('.filter-pill');
+                    if (allSelected) {
+                        allButton.classList.add('active');
+                    } else {
+                        allButton.classList.remove('active');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

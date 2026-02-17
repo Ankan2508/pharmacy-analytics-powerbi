@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Analytics - The European Pharmacy Landscape</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #374151;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            padding: 30px 40px;
+            border-bottom: 3px solid #0F766E;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-section h1 {
+            color: #0F766E;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .title-section p {
+            color: #6B7280;
+            font-size: 16px;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #0F766E;
+        }
+
+        .nav-btn.active {
+            background: #0F766E;
+            color: white;
+        }
+
+        .nav-btn:not(.active) {
+            background: white;
+            color: #0F766E;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+
+        /* Main Content */
+        .content {
+            padding: 40px;
+        }
+
+        /* Hero Metrics */
+        .hero-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #0F766E;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .metric-value {
+            font-size: 72px;
+            font-weight: 700;
+            color: #0F766E;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #6B7280;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .metric-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #10B981;
+            font-weight: 600;
+        }
+
+        .metric-change.negative {
+            color: #DC2626;
+        }
+
+        .arrow-up::before {
+            content: '▲';
+            font-size: 10px;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .map-card {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .network-card {
+            grid-row: span 1;
+        }
+
+        .trend-card {
+            grid-column: span 2;
+        }
+
+        .products-card {
+            grid-row: span 1;
+        }
+
+        /* Network Composition */
+        .network-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #F9FAFB;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .network-item:hover {
+            background: #F0FDFA;
+        }
+
+        .network-icon {
+            width: 48px;
+            height: 48px;
+            background: #0F766E;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .network-details {
+            flex: 1;
+        }
+
+        .network-count {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0F766E;
+            line-height: 1;
+        }
+
+        .network-label {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+
+        .network-percentage {
+            font-size: 14px;
+            color: #9CA3AF;
+            font-weight: 600;
+        }
+
+        /* Map placeholder */
+        .map-container {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #E0F2F1 0%, #B2DFDB 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(15, 118, 110, 0.3);
+            border: 3px solid #0F766E;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0F766E;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .map-bubble:hover {
+            transform: scale(1.1);
+            background: rgba(15, 118, 110, 0.5);
+        }
+
+        .map-stats {
+            text-align: center;
+            color: #0F766E;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        .chart-container canvas {
+            max-height: 280px;
+        }
+
+        /* Slicers */
+        .slicers {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            justify-content: flex-end;
+        }
+
+        .slicer {
+            display: flex;
+            gap: 8px;
+        }
+
+        .slicer-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #E5E7EB;
+            background: white;
+            color: #6B7280;
+        }
+
+        .slicer-btn.active {
+            background: #0F766E;
+            color: white;
+            border-color: #0F766E;
+        }
+
+        .slicer-btn:hover:not(.active) {
+            border-color: #0F766E;
+            color: #0F766E;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .map-card {
+                grid-column: span 2;
+            }
+            .trend-card {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-metrics {
+                grid-template-columns: 1fr;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .map-card, .trend-card {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1>The European Pharmacy Landscape</h1>
+                    <p>Network Performance Overview • 2024-2025</p>
+                </div>
+                <div class="navigation">
+                    <button class="nav-btn active">Page 1</button>
+                    <button class="nav-btn">Page 2</button>
+                    <button class="nav-btn">Page 3</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Slicers -->
+            <div class="slicers">
+                <div class="slicer">
+                    <button class="slicer-btn active">2024</button>
+                    <button class="slicer-btn active">2025</button>
+                </div>
+                <div class="slicer">
+                    <button class="slicer-btn active">Q1</button>
+                    <button class="slicer-btn active">Q2</button>
+                    <button class="slicer-btn active">Q3</button>
+                    <button class="slicer-btn active">Q4</button>
+                </div>
+            </div>
+
+            <!-- Hero Metrics -->
+            <div class="hero-metrics">
+                <div class="metric-card">
+                    <div class="metric-value">€8.6M</div>
+                    <div class="metric-label">Total Revenue</div>
+                    <div class="metric-change"><span class="arrow-up"></span> +5.2% vs PY</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">€2.4M</div>
+                    <div class="metric-label">Gross Margin</div>
+                    <div class="metric-change" style="color: #6B7280;">28.0% margin rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">62.1K</div>
+                    <div class="metric-label">Transactions</div>
+                    <div class="metric-change" style="color: #6B7280;">Avg: 85 per day</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Map -->
+                <div class="card map-card">
+                    <div class="card-title">120 Pharmacies Across 8 Countries</div>
+                    <div class="map-container">
+                        <div class="map-bubble" style="width: 120px; height: 120px; top: 45%; left: 35%;">DE<br>€1.9M</div>
+                        <div class="map-bubble" style="width: 100px; height: 100px; top: 50%; left: 25%;">FR<br>€1.7M</div>
+                        <div class="map-bubble" style="width: 90px; height: 90px; top: 60%; left: 30%;">IT<br>€1.5M</div>
+                        <div class="map-bubble" style="width: 75px; height: 75px; top: 40%; left: 20%;">BE<br>€1.2M</div>
+                        <div class="map-bubble" style="width: 70px; height: 70px; top: 35%; left: 50%;">PL<br>€1.1M</div>
+                        <div class="map-bubble" style="width: 65px; height: 65px; top: 65%; left: 15%;">ES<br>€1.0M</div>
+                        <div class="map-bubble" style="width: 60px; height: 60px; top: 45%; left: 18%;">NL<br>€950K</div>
+                        <div class="map-bubble" style="width: 55px; height: 55px; top: 50%; left: 40%;">AT<br>€850K</div>
+                    </div>
+                </div>
+
+                <!-- Network Composition -->
+                <div class="card network-card">
+                    <div class="card-title">Network Composition</div>
+                    <div class="network-item">
+                        <div class="network-icon">🏢</div>
+                        <div class="network-details">
+                            <div class="network-count">50</div>
+                            <div class="network-label">Urban Pharmacies</div>
+                        </div>
+                        <div class="network-percentage">42%</div>
+                    </div>
+                    <div class="network-item">
+                        <div class="network-icon">🏘️</div>
+                        <div class="network-details">
+                            <div class="network-count">47</div>
+                            <div class="network-label">Suburban Pharmacies</div>
+                        </div>
+                        <div class="network-percentage">39%</div>
+                    </div>
+                    <div class="network-item">
+                        <div class="network-icon">🌳</div>
+                        <div class="network-details">
+                            <div class="network-count">23</div>
+                            <div class="network-label">Rural Pharmacies</div>
+                        </div>
+                        <div class="network-percentage">19%</div>
+                    </div>
+                </div>
+
+                <!-- Trend Chart -->
+                <div class="card trend-card">
+                    <div class="card-title">Monthly Revenue Trend</div>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Products Donut -->
+                <div class="card products-card">
+                    <div class="card-title">Product Categories</div>
+                    <div class="chart-container">
+                        <canvas id="productsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Trend Chart
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        const trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan 24', 'Feb 24', 'Mar 24', 'Apr 24', 'May 24', 'Jun 24', 
+                         'Jul 24', 'Aug 24', 'Sep 24', 'Oct 24', 'Nov 24', 'Dec 24',
+                         'Jan 25', 'Feb 25', 'Mar 25', 'Apr 25', 'May 25', 'Jun 25'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [320, 340, 380, 390, 410, 420, 430, 450, 470, 510, 680, 720,
+                           350, 360, 400, 410, 430, 440],
+                    borderColor: '#0F766E',
+                    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#0F766E',
+                    pointHoverBorderColor: 'white',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 118, 110, 0.95)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return '€' + context.parsed.y + 'K';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#F3F4F6',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: {
+                                size: 11
+                            },
+                            callback: function(value) {
+                                return '€' + value + 'K';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9CA3AF',
+                            font: {
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Products Donut Chart
+        const productsCtx = document.getElementById('productsChart').getContext('2d');
+        const productsChart = new Chart(productsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['OTC', 'Prescription', 'Personal Care', 'Wellness', 'Medical Devices'],
+                datasets: [{
+                    data: [61, 47, 47, 41, 24],
+                    backgroundColor: [
+                        '#0F766E',
+                        '#14B8A6',
+                        '#2DD4BF',
+                        '#5EEAD4',
+                        '#99F6E4'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#6B7280',
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 118, 110, 0.95)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return label + ': ' + value + ' products (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            },
+            plugins: [{
+                id: 'centerText',
+                beforeDraw: function(chart) {
+                    const width = chart.width;
+                    const height = chart.height;
+                    const ctx = chart.ctx;
+                    ctx.restore();
+                    const fontSize = (height / 180).toFixed(2);
+                    ctx.font = 'bold ' + fontSize + 'em Segoe UI';
+                    ctx.fillStyle = '#0F766E';
+                    ctx.textBaseline = 'middle';
+                    const text = '220';
+                    const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                    const textY = height / 2 - 10;
+                    ctx.fillText(text, textX, textY);
+                    
+                    ctx.font = '0.7em Segoe UI';
+                    ctx.fillStyle = '#6B7280';
+                    const subtext = 'Products';
+                    const subtextX = Math.round((width - ctx.measureText(subtext).width) / 2);
+                    const subtextY = height / 2 + 15;
+                    ctx.fillText(subtext, subtextX, subtextY);
+                    ctx.save();
+                }
+            }]
+        });
+
+        // Slicer interactivity
+        document.querySelectorAll('.slicer-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
